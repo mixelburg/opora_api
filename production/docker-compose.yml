@@ -1,0 +1,25 @@
+version: "3.7"
+
+
+services:
+  database:
+    container_name: "database"
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    networks:
+      main_network:
+        ipv4_address: 172.20.0.10
+        aliases:
+          - database
+
+
+networks:
+  main_network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

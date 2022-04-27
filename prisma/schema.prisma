@@ -1,0 +1,215 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Circuit {
+    id  Int @id @default(autoincrement())
+    ref String
+    name String
+    location String
+    country String
+    lat Float
+    lng Float
+    alt Int
+    url String
+
+    races Race[]
+}
+
+model Driver {
+    id  Int @id @default(autoincrement())
+    ref String
+    number Int?
+    code String
+    forename String
+    surname String
+    dob String
+    nationality String
+    url String
+
+    standings DriverStanding[]
+    lapTimes LapTime[]
+    qualifications Qualification[]
+    results Result[]
+    pitStops PitStop[]
+}
+
+model Race {
+    id  Int @id @default(autoincrement())
+    year Int
+    round Int
+    circuit Circuit @relation(fields: [circuitId], references: [id])
+    circuitId Int
+    name String
+    date String
+    time String
+    url String
+
+    constructorResults ConstructorResult[]
+    driverStandings DriverStanding[]
+    constructorStandings ConstructorStanding[]
+    qualifications Qualification[]
+    results Result[]
+    lapTimes LapTime[]
+    pitStops PitStop[]
+}
+
+model Season {
+    year Int @id @unique
+    url String
+}
+
+model Status {
+    id  Int @id @default(autoincrement())
+    status String
+
+    result Result?
+}
+
+model RaceConstructor {
+    id  Int @id @default(autoincrement())
+    ref String
+    name String
+    nationality String
+    url String
+
+    standings ConstructorStanding[]
+    results ConstructorResult[]
+    qualifications Qualification[]
+    raceResults Result[]
+}
+
+model ConstructorResult {
+    id  Int @id @default(autoincrement())
+
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    constructor RaceConstructor @relation(fields: [constructorId], references: [id])
+    constructorId Int
+
+    points Int
+    status String?
+}
+
+model LapTime {
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    driver Driver @relation(fields: [driverId], references: [id])
+    driverId Int
+
+    lap Int
+
+    position Int
+    time String
+    milliseconds Int
+
+    @@id([raceId, driverId, lap])
+}
+
+model PitStop {
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    driver Driver @relation(fields: [driverId], references: [id])
+    driverId Int
+
+    stop Int
+
+    lap Int
+    time String
+    duration Float
+    milliseconds Int
+
+    @@id([raceId, driverId, stop])
+}
+
+model DriverStanding {
+    id  Int @id @default(autoincrement())
+
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    driver Driver @relation(fields: [driverId], references: [id])
+    driverId Int
+
+    points Int
+    position Int
+    positionText String
+    wins Boolean
+}
+
+model ConstructorStanding {
+    id  Int @id @default(autoincrement())
+
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    constructor RaceConstructor @relation(fields: [constructorId], references: [id])
+    constructorId Int
+
+    points Int
+    position Int
+    positionText String
+    wins Boolean
+}
+
+model Qualification {
+    id  Int @id @default(autoincrement())
+
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    driver Driver @relation(fields: [driverId], references: [id])
+    driverId Int
+
+    constructor RaceConstructor @relation(fields: [constructorId], references: [id])
+    constructorId Int
+
+    number Int
+    position Int
+
+    q1 String
+    q2 String?
+    q3 String?
+}
+
+
+model Result {
+    id  Int @id @default(autoincrement())
+
+    race Race @relation(fields: [raceId], references: [id])
+    raceId Int
+
+    driver Driver @relation(fields: [driverId], references: [id])
+    driverId Int
+
+    constructor RaceConstructor @relation(fields: [constructorId], references: [id])
+    constructorId Int
+
+    number Int
+    grid Int
+    position Int?
+    positionText String
+    positionOrder Int
+    points Int
+    laps Int
+    time String?
+    milliseconds Int?
+    fastestLap Int?
+    rank Int?
+    fastestLapTime String?
+    fastestLapSpeed Float?
+
+    status Status @relation(fields: [statusId], references: [id])
+    statusId Int
+}

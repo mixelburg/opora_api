@@ -21,7 +21,7 @@ CREATE TABLE "Driver" (
     "code" TEXT NOT NULL,
     "forename" TEXT NOT NULL,
     "surname" TEXT NOT NULL,
-    "dob" TEXT NOT NULL,
+    "dob" TIMESTAMP(3) NOT NULL,
     "nationality" TEXT NOT NULL,
     "url" TEXT NOT NULL,
 
@@ -35,8 +35,7 @@ CREATE TABLE "Race" (
     "round" INTEGER NOT NULL,
     "circuitId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "date" TEXT NOT NULL,
-    "time" TEXT NOT NULL,
+    "timeStamp" TIMESTAMP(3) NOT NULL,
     "url" TEXT NOT NULL,
 
     CONSTRAINT "Race_pkey" PRIMARY KEY ("id")
@@ -152,7 +151,7 @@ CREATE TABLE "Result" (
     "raceId" INTEGER NOT NULL,
     "driverId" INTEGER NOT NULL,
     "constructorId" INTEGER NOT NULL,
-    "number" INTEGER NOT NULL,
+    "number" INTEGER,
     "grid" INTEGER NOT NULL,
     "position" INTEGER,
     "positionText" TEXT NOT NULL,
@@ -172,9 +171,6 @@ CREATE TABLE "Result" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Season_year_key" ON "Season"("year");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Result_statusId_key" ON "Result"("statusId");
 
 -- AddForeignKey
 ALTER TABLE "Race" ADD CONSTRAINT "Race_circuitId_fkey" FOREIGN KEY ("circuitId") REFERENCES "Circuit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

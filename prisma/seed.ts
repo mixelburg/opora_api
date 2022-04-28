@@ -7,15 +7,22 @@ const prisma = new PrismaClient();
 
 const DIR_NAME = 'seeds';
 
+/**
+ * Parses csv file and collects all data in an array
+ * after that executes callback on each row in chunks and awaits for each chunk to complete
+ * @param fileName name of the file to parse
+ * @param onRow callback to execute on each row
+ */
 const parseCSV = async (fileName: string, onRow: (data: any) => Promise<void>) => {
-  const promises: Promise<void>[] = []
-
+  const data: any[] = [];
   await new Promise<void>((resolve, reject) => {
     fs.createReadStream(path.resolve(__dirname, DIR_NAME, fileName))
       .pipe(csv.parse({ headers: true }))
-      .on('error', (err: any) => {reject(err)})
-      .on('data', row => {
-        promises.push(onRow(row));
+      .on('error', (err: any) => {
+        reject(err);
+      })
+      .on('data', (row) => {
+        data.push(row);
       })
       .on('end', (rowCount: number) => {
         console.log(`Parsed ${rowCount} rows from ${fileName}`);
@@ -23,14 +30,20 @@ const parseCSV = async (fileName: string, onRow: (data: any) => Promise<void>) =
       });
   });
 
-  console.log('Waiting for all promises to resolve...', promises.length);
-  //TODO: limit concurrency
-  await Promise.all(promises);
+  // for now there is no other solution rather than
+  // collecting all data in an array and executing it in chunks
+  const chunkSize = 10;
+  for (let i = 0; i < data.length; i += chunkSize) {
+    const chunk = data.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(onRow));
+  }
 };
 
-const toNull = (val: string): null | string => {
-  return val === '\\\\n' ? null : val;
-};
+// checking for nulls in csv files (represented by '\n')
+const isNull = (val: string): boolean => val.toLowerCase() === '\\\\n' || val.toLowerCase() === '\\n';
+const toNull = (val: string): null | string => (isNull(val) ? null : val);
+const toNullOrInt = (val: string): null | number => (isNull(val) ? null : parseInt(val));
+const toNullOrFloat = (val: string): null | number => (isNull(val) ? null : parseFloat(val));
 
 const main = async (): Promise<void> => {
   try {
@@ -65,12 +78,12 @@ const main = async (): Promise<void> => {
       await prisma.driver.create({
         data: {
           id: parseInt(data.driverId),
-          number: toNull(data.number) === null ? parseInt(data.number) : null,
+          number: toNullOrInt(data.number),
           ref: data.driverRef,
           code: data.code,
           forename: data.forename,
           surname: data.surname,
-          dob: data.dob,
+          dob: new Date(data.dob),
           nationality: data.nationality,
           url: data.url,
         },
@@ -98,9 +111,8 @@ const main = async (): Promise<void> => {
           year: parseInt(data.year),
           round: parseInt(data.round),
           circuitId: parseInt(data.circuitId),
+          timeStamp: isNull(data.time) ? new Date(data.date) : new Date(data.date + ' ' + data.time),
           name: data.name,
-          date: data.date,
-          time: data.time,
           url: data.url,
         },
       });
@@ -189,19 +201,19 @@ const main = async (): Promise<void> => {
           raceId: parseInt(data.raceId),
           driverId: parseInt(data.driverId),
           constructorId: parseInt(data.constructorId),
-          number: parseInt(data.number),
+          number: toNullOrInt(data.number),
           grid: parseInt(data.grid),
-          position: toNull(data.position) === null ? parseInt(data.position) : null,
+          position: toNullOrInt(data.position),
           positionText: data.positionText,
           positionOrder: parseInt(data.positionOrder),
           points: parseInt(data.points),
           laps: parseInt(data.laps),
           time: toNull(data.time),
-          milliseconds: toNull(data.milliseconds) === null ? parseInt(data.milliseconds) : null,
-          fastestLap: toNull(data.fastestLap) === null ? parseInt(data.fastestLap) : null,
-          fastestLapSpeed: toNull(data.fastestLapSpeed) === null ? parseFloat(data.fastestLapSpeed) : null,
+          milliseconds: toNullOrInt(data.milliseconds),
+          fastestLap: toNullOrInt(data.fastestLap),
+          fastestLapSpeed: toNullOrFloat(data.fastestLapSpeed),
           fastestLapTime: toNull(data.fastestLapTime),
-          rank: toNull(data.rank) === null ? parseInt(data.rank) : null,
+          rank: toNullOrInt(data.rank),
           statusId: parseInt(data.statusId),
         },
       });
@@ -209,6 +221,7 @@ const main = async (): Promise<void> => {
   } catch (e: any) {
     console.error(e);
   } finally {
+    console.log('[+] Finished');
     prisma.$disconnect();
   }
 };

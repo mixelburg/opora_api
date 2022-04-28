@@ -31,7 +31,7 @@ model Driver {
     code String
     forename String
     surname String
-    dob String
+    dob DateTime
     nationality String
     url String
 
@@ -49,8 +49,7 @@ model Race {
     circuit Circuit @relation(fields: [circuitId], references: [id])
     circuitId Int
     name String
-    date String
-    time String
+    timeStamp DateTime
     url String
 
     constructorResults ConstructorResult[]
@@ -71,7 +70,7 @@ model Status {
     id  Int @id @default(autoincrement())
     status String
 
-    result Result?
+    results Result[]
 }
 
 model RaceConstructor {
@@ -196,7 +195,7 @@ model Result {
     constructor RaceConstructor @relation(fields: [constructorId], references: [id])
     constructorId Int
 
-    number Int
+    number Int?
     grid Int
     position Int?
     positionText String

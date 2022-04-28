@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import errorHandler from '@/util/errorHandler';
 import ash from '@/util/asyncErrorHandler';
 import getSeason from '@/handlers/getSeason';
+import getTopSeasons from '@/handlers/getTopSeasons';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ const main = async () => {
   });
 
   app.get('/season/:year', getSeason);
+  app.get('/season', getTopSeasons);
 
   app.use(errorHandler);
 

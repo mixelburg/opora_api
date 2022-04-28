@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Season {
+    year Int @id @unique
+    url String
+
+    races Race[]
+}
+
 model Circuit {
     id  Int @id @default(autoincrement())
     ref String
@@ -44,9 +51,13 @@ model Driver {
 
 model Race {
     id  Int @id @default(autoincrement())
+
     year Int
+    season Season @relation(fields: [year], references: [year])
+
     round Int
     circuit Circuit @relation(fields: [circuitId], references: [id])
+
     circuitId Int
     name String
     timeStamp DateTime
@@ -61,10 +72,6 @@ model Race {
     pitStops PitStop[]
 }
 
-model Season {
-    year Int @id @unique
-    url String
-}
 
 model Status {
     id  Int @id @default(autoincrement())

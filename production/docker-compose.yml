@@ -1,12 +1,11 @@
 version: "3.7"
 
-
 services:
   database:
     container_name: "database"
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5555:5432"
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
     environment:

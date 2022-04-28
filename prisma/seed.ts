@@ -7,22 +7,34 @@ const prisma = new PrismaClient();
 
 const DIR_NAME = 'seeds';
 
-const parseCSV = (fileName: string, onRow: (data: any) => any) => {
-  // add wait for promises
-  fs.createReadStream(path.resolve(__dirname, DIR_NAME, fileName))
-    .pipe(csv.parse({ headers: true }))
-    .on('error', (err: any) => console.error(err))
-    .on('data', onRow)
-    .on('end', (rowCount: number) => console.log(`Parsed ${rowCount} rows from ${fileName}`));
+const parseCSV = async (fileName: string, onRow: (data: any) => Promise<void>) => {
+  const promises: Promise<void>[] = []
+
+  await new Promise<void>((resolve, reject) => {
+    fs.createReadStream(path.resolve(__dirname, DIR_NAME, fileName))
+      .pipe(csv.parse({ headers: true }))
+      .on('error', (err: any) => {reject(err)})
+      .on('data', row => {
+        promises.push(onRow(row));
+      })
+      .on('end', (rowCount: number) => {
+        console.log(`Parsed ${rowCount} rows from ${fileName}`);
+        resolve(void 0);
+      });
+  });
+
+  console.log('Waiting for all promises to resolve...', promises.length);
+  //TODO: limit concurrency
+  await Promise.all(promises);
 };
 
 const toNull = (val: string): null | string => {
   return val === '\\\\n' ? null : val;
 };
 
-const main = (): void => {
+const main = async (): Promise<void> => {
   try {
-    parseCSV('seasons.csv', async (data: any) => {
+    await parseCSV('seasons.csv', async (data: any) => {
       await prisma.season.create({
         data: {
           year: parseInt(data.year),
@@ -30,7 +42,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('status.csv', async (data: any) => {
+    await parseCSV('status.csv', async (data: any) => {
       await prisma.status.create({
         data: {
           id: parseInt(data.statusId),
@@ -38,7 +50,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('constructors.csv', async (data: any) => {
+    await parseCSV('constructors.csv', async (data: any) => {
       await prisma.raceConstructor.create({
         data: {
           id: parseInt(data.constructorId),
@@ -49,7 +61,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('drivers.csv', async (data: any) => {
+    await parseCSV('drivers.csv', async (data: any) => {
       await prisma.driver.create({
         data: {
           id: parseInt(data.driverId),
@@ -64,7 +76,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('circuits.csv', async (data: any) => {
+    await parseCSV('circuits.csv', async (data: any) => {
       await prisma.circuit.create({
         data: {
           id: parseInt(data.circuitId),
@@ -79,7 +91,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('races.csv', async (data: any) => {
+    await parseCSV('races.csv', async (data: any) => {
       await prisma.race.create({
         data: {
           id: parseInt(data.raceId),
@@ -93,7 +105,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('lap_times.csv', async (data: any) => {
+    await parseCSV('lap_times.csv', async (data: any) => {
       await prisma.lapTime.create({
         data: {
           raceId: parseInt(data.raceId),
@@ -105,7 +117,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('pit_stops.csv', async (data: any) => {
+    await parseCSV('pit_stops.csv', async (data: any) => {
       await prisma.pitStop.create({
         data: {
           raceId: parseInt(data.raceId),
@@ -118,7 +130,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('driver_standings.csv', async (data: any) => {
+    await parseCSV('driver_standings.csv', async (data: any) => {
       await prisma.driverStanding.create({
         data: {
           id: parseInt(data.driverStandingsId),
@@ -131,7 +143,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('constructor_standings.csv', async (data: any) => {
+    await parseCSV('constructor_standings.csv', async (data: any) => {
       await prisma.constructorStanding.create({
         data: {
           id: parseInt(data.constructorStandingsId),
@@ -144,7 +156,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('constructor_results.csv', async (data: any) => {
+    await parseCSV('constructor_results.csv', async (data: any) => {
       await prisma.constructorResult.create({
         data: {
           id: parseInt(data.constructorResultsId),
@@ -155,7 +167,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('qualifying.csv', async (data: any) => {
+    await parseCSV('qualifying.csv', async (data: any) => {
       await prisma.qualification.create({
         data: {
           id: parseInt(data.qualifyId),
@@ -170,7 +182,7 @@ const main = (): void => {
         },
       });
     });
-    parseCSV('results.csv', async (data: any) => {
+    await parseCSV('results.csv', async (data: any) => {
       await prisma.result.create({
         data: {
           id: parseInt(data.resultId),
@@ -201,4 +213,4 @@ const main = (): void => {
   }
 };
 
-main();
+main().then();

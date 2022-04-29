@@ -1,41 +1,26 @@
 import ash from '@/util/asyncErrorHandler';
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
+import getDriversByYear from '@/db/getDriversByYear';
 
 const getTopSeasons = ash(async (req: Request, res: Response) => {
-  const result = (
+  // get the list of all seasons
+  const seasons = (
     await prisma.season.findMany({
       select: {
         year: true,
       },
     })
-  )
-    .map((val) => val.year)
-    .map((val: number) => {
-      return {
-        year: val,
-        topDrivers: [],
-      };
-    });
+  ).map((val) => val.year);
 
-  const driverIds = (
-    await prisma.driverStanding.groupBy({
-      by: ['driverId'],
-      where: {
-        race: {
-          year: parseInt(req.params.year),
-        },
-        wins: true,
-      },
-      orderBy: {
-        _count: {
-          wins: 'desc',
-        },
-      },
-    })
-  ).map((val) => val.driverId);
+  const data: { [key: string]: number[] } = {};
 
-  return res.json(result);
+  // get best drivers for each season
+  for (const season of seasons) {
+    data[season] = await getDriversByYear(season);
+  }
+
+  return res.json(data);
 });
 
 export default getTopSeasons;

@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
-import prisma from '@/prisma';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import errorHandler from '@/util/errorHandler';
-import ash from '@/util/asyncErrorHandler';
 import getSeason from '@/handlers/getSeason';
 import getTopSeasons from '@/handlers/getTopSeasons';
 

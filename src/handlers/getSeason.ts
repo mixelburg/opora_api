@@ -1,6 +1,7 @@
 import ash from '@/util/asyncErrorHandler';
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
+import getDriversByYear from '@/db/getDriversByYear';
 
 const getSeason = ash(async (req: Request, res: Response) => {
   // check if given year is a number
@@ -18,29 +19,11 @@ const getSeason = ash(async (req: Request, res: Response) => {
   ) {
     return res.status(400).send('year does not exist');
   }
-  // get all driver id's sorted by their wins in a giver season
-  const driverIds = (
-    await prisma.driverStanding.groupBy({
-      by: ['driverId'],
-      where: {
-        race: {
-          year: parseInt(req.params.year),
-        },
-        wins: true,
-      },
-      orderBy: {
-        _count: {
-          wins: 'desc',
-        },
-      },
-    })
-  ).map((val) => val.driverId);
-
   // get full driver objects
   const drivers = await prisma.driver.findMany({
     where: {
       id: {
-        in: driverIds,
+        in: await getDriversByYear(parseInt(req.params.year)),
       },
     },
   });

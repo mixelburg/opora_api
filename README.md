@@ -30,10 +30,15 @@ npm run dev
 
 1. run the dockerfile
 ```
-docker build -t prisma-racing-api .
+docker build -t opora-backend .
 ```
 2. upload images to the server
-3. run the docker compose file
+3. Run migrations and seed the database (if running for the first time)
+```
+prisma migrate dev --name init
+npm run seed
+```
+4. run the production docker-compose file
 ```
 docker-compose up -d
 ```

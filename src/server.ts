@@ -14,6 +14,7 @@ dotenv.config();
 const main = async () => {
   const app = express();
   const port = process.env.PORT;
+  const host = process.env.HOST;
 
   app.get('/', (req, res) => {
     res.send('The best server in the world');
@@ -31,8 +32,8 @@ const main = async () => {
 
   app.use(errorHandler);
 
-  app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
+  app.listen(parseInt(port!), host!, () => {
+    console.log(`[server]: Server is running at http://${host}:${port}`);
   });
 };
 main().then();

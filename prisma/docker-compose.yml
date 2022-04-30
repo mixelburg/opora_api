@@ -15,22 +15,6 @@ services:
         ipv4_address: 172.20.0.10
         aliases:
           - database
-  backend:
-    container_name: "backend"
-    image: "opora-backend"
-    ports:
-      - "4444:4444"
-    depends_on:
-      - database
-    environment:
-      PORT: "${PORT}"
-      HOST: "${HOST}"
-      DATABASE_URL: "${DATABASE_URL}"
-    networks:
-      main_network:
-        ipv4_address: 172.20.0.20
-        aliases:
-          - backend-1
 
 
 networks:

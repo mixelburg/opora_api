@@ -15,8 +15,8 @@ const getDriversByYear = async (year: number): Promise<number[]> => {
         wins: true,
       },
       orderBy: {
-        _count: {
-          wins: 'desc',
+        _sum: {
+          points: 'desc',
         },
       },
     })
